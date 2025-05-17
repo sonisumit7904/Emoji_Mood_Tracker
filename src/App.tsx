@@ -5,6 +5,7 @@ import MoodLegend from "./components/MoodLegend";
 import Notification from "./components/Notification";
 import JournalInput from "./components/JournalInput";
 import ActivityTagSelector from "./components/ActivityTagSelector"; // Import new component
+import MoodChart from "./components/MoodChart"; // Import the new MoodChart component
 import { MoodEntries, MoodType } from "./types/types";
 import { getTodayString } from "./utils/dateUtils";
 import { getMoodEntries, saveMoodEntry } from "./utils/localStorage";
@@ -192,7 +193,8 @@ function App() {
             />
             <MoodLegend />
           </div>
-        </div>
+        </div>        {/* Add the MoodChart component below the main two-column layout */}
+        <MoodChart moodEntries={moodEntries} month={currentMonth} year={currentYear} />
       </main>
 
       <footer className="mt-auto py-6 text-center text-gray-500 text-sm">
