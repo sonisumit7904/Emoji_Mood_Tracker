@@ -11,8 +11,13 @@ export interface MoodEntry {
   date: string; // ISO format date string (YYYY-MM-DD)
   mood: MoodType;
   journal?: string; // Optional field for journal/tags
+  tags?: string[]; // Optional array of tags
 }
 
 export interface MoodEntries {
-  [date: string]: { mood: MoodType; journal?: string }; // Entry can now have mood and journal
+  [date: string]: { 
+    mood: MoodType; 
+    journal?: string; 
+    tags?: string[]; // Entry can now have mood, journal, and tags
+  };
 }

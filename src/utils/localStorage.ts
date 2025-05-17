@@ -29,16 +29,21 @@ export const getMoodEntries = (): MoodEntries => {
 /**
  * Save a mood entry for a specific date
  */
-export const saveMoodEntry = (date: string, mood: MoodType, journal?: string): void => {
+export const saveMoodEntry = (
+  date: string, 
+  mood: MoodType, 
+  journal?: string,
+  tags?: string[] // Add tags parameter
+): void => {
   const entries = getMoodEntries();
-  entries[date] = { mood, journal };
+  entries[date] = { mood, journal, tags }; // Include tags
   saveMoodEntries(entries);
 };
 
 /**
  * Get a mood entry for a specific date
  */
-export const getMoodEntry = (date: string): { mood: MoodType; journal?: string } | null => {
+export const getMoodEntry = (date: string): { mood: MoodType; journal?: string; tags?: string[] } | undefined => {
   const entries = getMoodEntries();
-  return entries[date] || null;
+  return entries[date]; // This will now include tags if they exist
 };
