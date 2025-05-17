@@ -15,13 +15,17 @@ interface CalendarProps {
   currentMonth: number;
   currentYear: number;
   onChangeMonth: (direction: 'prev' | 'next') => void;
+  onDateSelect: (dateString: string) => void;
+  selectedDate: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({ 
   moodEntries, 
   currentMonth, 
   currentYear, 
-  onChangeMonth 
+  onChangeMonth,
+  onDateSelect,
+  selectedDate
 }) => {
   const monthName = getMonthNames()[currentMonth];
   const dayNames = getDayNames();
@@ -125,17 +129,26 @@ const Calendar: React.FC<CalendarProps> = ({
       </div>
       
       <div className="grid grid-cols-7 gap-1">
-        {calendarDays.map((day, index) => (
-          <CalendarDay
-            key={index}
-            day={day.day}
-            month={day.month}
-            year={day.year}
-            mood={day.mood}
-            isCurrentMonth={day.isCurrentMonth}
-            isToday={day.isToday}
-          />
-        ))}
+        {calendarDays.map((day, index) => {
+          const dateObj = new Date(day.year, day.month, day.day);
+          const dateString = formatDateToString(dateObj);
+          const isSelected = dateString === selectedDate;
+          
+          return (
+            <CalendarDay
+              key={index}
+              day={day.day}
+              month={day.month}
+              year={day.year}
+              dateString={dateString}
+              mood={day.mood}
+              isCurrentMonth={day.isCurrentMonth}
+              isToday={day.isToday}
+              isSelected={isSelected}
+              onSelect={onDateSelect}
+            />
+          );
+        })}
       </div>
     </div>
   );

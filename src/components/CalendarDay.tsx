@@ -6,18 +6,24 @@ interface CalendarDayProps {
   day: number;
   month: number;
   year: number;
+  dateString: string;
   mood: MoodType | null;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isSelected: boolean;
+  onSelect: (dateString: string) => void;
 }
 
 const CalendarDay: React.FC<CalendarDayProps> = ({ 
   day, 
-  month, 
-  year, 
+  month, // Used in props but not directly in component
+  year, // Used in props but not directly in component
+  dateString,
   mood, 
   isCurrentMonth, 
-  isToday 
+  isToday,
+  isSelected,
+  onSelect
 }) => {
   // Get the style based on the mood
   const getMoodStyle = () => {
@@ -37,14 +43,24 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     transition-all duration-300
     ${isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}
     ${isToday ? 'ring-2 ring-blue-500 font-bold' : ''}
+    ${isSelected ? 'ring-2 ring-green-500 ring-offset-1' : ''}
     ${mood && isCurrentMonth ? 'font-medium' : ''}
+    ${isCurrentMonth ? 'cursor-pointer hover:bg-gray-100' : ''}
   `;
+
+  const handleClick = () => {
+    if (isCurrentMonth) {
+      onSelect(dateString);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center p-1">
       <div 
         className={dayClasses}
         style={getMoodStyle()}
+        onClick={handleClick}
+        title={isSelected ? `Selected: ${dateString}` : dateString}
       >
         {day}
       </div>

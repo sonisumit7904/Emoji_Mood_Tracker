@@ -9,8 +9,8 @@ interface EmojiSelectorProps {
 
 const EmojiSelector: React.FC<EmojiSelectorProps> = ({ selectedMood, onSelectMood }) => {
   return (
-    <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">How are you feeling today?</h2>
+    <div className="mb-8 w-full">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">How are you feeling?</h2>
       <div className="flex flex-wrap justify-center gap-4">
         {MOODS.map((mood) => (
           <button
