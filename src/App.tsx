@@ -3,6 +3,7 @@ import Calendar from "./components/Calendar";
 import EmojiSelector from "./components/EmojiSelector";
 import MoodLegend from "./components/MoodLegend";
 import Notification from "./components/Notification";
+import JournalInput from "./components/JournalInput"; // Import JournalInput
 import { MoodEntries, MoodType } from "./types/types";
 import { getTodayString } from "./utils/dateUtils";
 import { getMoodEntries, saveMoodEntry } from "./utils/localStorage";
@@ -20,6 +21,8 @@ function App() {
   const todayString = getTodayString();
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+  const [showJournalInput, setShowJournalInput] = useState(false); // State to control journal input visibility
+  const [currentJournal, setCurrentJournal] = useState<string | undefined>(undefined);
 
   // Notification state
   const [notification, setNotification] = useState<string | null>(null);
@@ -33,25 +36,40 @@ function App() {
   // Update selected mood when selected date changes
   useEffect(() => {
     const entries = getMoodEntries();
-    setSelectedMood(entries[selectedDate] || null);
+    setSelectedMood(entries[selectedDate]?.mood || null);
+    setCurrentJournal(entries[selectedDate]?.journal);
+    // Hide journal input when date changes, unless a mood is already selected for the new date
+    setShowJournalInput(!!entries[selectedDate]?.mood);
   }, [selectedDate]);
 
   // Handle mood selection
   const handleSelectMood = (mood: MoodType) => {
-    // Save the mood entry
-    saveMoodEntry(selectedDate, mood);
-
-    // Update state
     setSelectedMood(mood);
-    setMoodEntries((prev) => ({
-      ...prev,
-      [selectedDate]: mood,
-    }));
+    // Don't save immediately, show journal input first
+    setShowJournalInput(true);
+    // If there's an existing journal for this date and mood, pre-fill it
+    const existingEntry = getMoodEntries()[selectedDate];
+    if (existingEntry && existingEntry.mood === mood) {
+      setCurrentJournal(existingEntry.journal);
+    } else {
+      // If mood changes or no existing journal, clear it
+      setCurrentJournal(undefined);
+    }
+  };
 
-    // Show notification
-    setNotification(
-      `Mood saved for ${selectedDate === todayString ? "today" : selectedDate}!`
-    );
+  // Handle saving journal entry
+  const handleSaveJournal = (journal: string) => {
+    if (selectedMood) {
+      saveMoodEntry(selectedDate, selectedMood, journal);
+      setMoodEntries((prev) => ({
+        ...prev,
+        [selectedDate]: { mood: selectedMood, journal },
+      }));
+      setNotification(
+        `Mood and journal saved for ${selectedDate === todayString ? "today" : selectedDate}!`
+      );
+      setShowJournalInput(false); // Hide after saving
+    }
   };
 
   // Handle date selection
@@ -93,7 +111,15 @@ function App() {
           onSelectMood={handleSelectMood}
         />
 
-        <div className="mb-4 text-center">
+        {showJournalInput && selectedMood && (
+          <JournalInput
+            key={selectedDate} // Add key to re-render when date changes
+            onSaveJournal={handleSaveJournal}
+            initialJournal={currentJournal}
+          />
+        )}
+
+        <div className="mb-4 text-center mt-4"> {/* Added mt-4 for spacing */}
           <h3 className="text-lg font-medium text-gray-800">
             Logging mood for:{" "}
             <span className="font-bold">
