@@ -8,12 +8,13 @@ import ActivityTagSelector from "./components/ActivityTagSelector"; // Import ne
 import MoodChart from "./components/MoodChart"; // Import the new MoodChart component
 import { MoodEntries, MoodType } from "./types/types";
 import { getTodayString } from "./utils/dateUtils";
-import { getMoodEntries, saveMoodEntry } from "./utils/localStorage";
+import { getMoodEntries, saveMoodEntry, saveCustomTags, getCustomTags } from "./utils/localStorage";
 
 // Define a simple Tag type for this component
 interface Tag {
   id: string;
   name: string;
+  isCustom?: boolean;
 }
 
 // Default tags
@@ -37,9 +38,7 @@ function App() {
 
   // State for selected date for mood logging
   const todayString = getTodayString();
-  const [selectedDate, setSelectedDate] = useState<string>(todayString);
-  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
-  const [showJournalInput, setShowJournalInput] = useState(false); // State to control journal input visibility
+  const [selectedDate, setSelectedDate] = useState<string>(todayString);  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [currentJournal, setCurrentJournal] = useState<string | undefined>(
     undefined
   );
@@ -50,40 +49,66 @@ function App() {
 
   // Notification state
   const [notification, setNotification] = useState<string | null>(null);
-
-  // Load mood entries from localStorage on component mount
+  // Load mood entries and custom tags from localStorage on component mount
   useEffect(() => {
     const entries = getMoodEntries();
     setMoodEntries(entries);
+    
+    // Load saved custom tags
+    const savedCustomTags = getCustomTags();
+    if (savedCustomTags.length > 0) {
+      // Merge default tags with custom tags, avoiding duplicates by ID
+      const mergedTags = [...DEFAULT_TAGS];
+      savedCustomTags.forEach(customTag => {
+        if (!mergedTags.some(tag => tag.id === customTag.id)) {
+          mergedTags.push(customTag);
+        }
+      });
+      setAvailableTags(mergedTags);
+    }
   }, []);
-
   // Update selected mood when selected date changes
   useEffect(() => {
     const entries = getMoodEntries();
     setSelectedMood(entries[selectedDate]?.mood || null);
     setCurrentJournal(entries[selectedDate]?.journal);
     setCurrentTags(entries[selectedDate]?.tags || []); // Load tags for selected date
-    // Hide journal input when date changes, unless a mood is already selected for the new date
-    setShowJournalInput(!!entries[selectedDate]?.mood);
   }, [selectedDate]);
-
   // Handle mood selection
   const handleSelectMood = (mood: MoodType) => {
     setSelectedMood(mood);
-    // Don't save immediately, show journal input first
-    setShowJournalInput(true);
+    
     // If there's an existing journal for this date and mood, pre-fill it
     const existingEntry = getMoodEntries()[selectedDate];
+    let journalText = undefined;
+    let tagList: string[] = [];
+    
     if (existingEntry && existingEntry.mood === mood) {
-      setCurrentJournal(existingEntry.journal);
-      setCurrentTags(existingEntry.tags || []); // Pre-fill tags
+      // If same mood is selected, keep existing journal and tags
+      journalText = existingEntry.journal;
+      tagList = existingEntry.tags || [];
+      setCurrentJournal(journalText);
+      setCurrentTags(tagList);
     } else {
       // If mood changes or no existing journal, clear it
       setCurrentJournal(undefined);
-      setCurrentTags([]); // Clear tags if mood changes or no entry
+      setCurrentTags([]);
     }
+    
+    // Save mood immediately (with any existing journal and tags or empty ones)
+    saveMoodEntry(selectedDate, mood, journalText, tagList);
+    setMoodEntries(prev => ({
+      ...prev,
+      [selectedDate]: { 
+        mood: mood, 
+        journal: journalText,
+        tags: tagList
+      }
+    }));
+    
+    // Show notification
+    setNotification(`Mood saved for ${selectedDate === todayString ? "today" : selectedDate}!`);
   };
-
   // Handle saving journal entry
   const handleSaveJournal = (journal: string) => {
     if (selectedMood) {
@@ -93,11 +118,10 @@ function App() {
         [selectedDate]: { mood: selectedMood, journal, tags: currentTags }, // Save tags in state
       }));
       setNotification(
-        `Mood, journal, and tags saved for ${
+        `Journal saved for ${
           selectedDate === todayString ? "today" : selectedDate
         }!`
       );
-      setShowJournalInput(false); // Hide after saving
     }
   };
 
@@ -123,20 +147,75 @@ function App() {
         setCurrentMonth((prev) => prev + 1);
       }
     }
-  };
-
-  const handleTagSelectionChange = (newSelectedTags: string[]) => {
+  };  const handleTagSelectionChange = (newSelectedTags: string[]) => {
     setCurrentTags(newSelectedTags);
+    
+    // Save immediately if a mood is already selected
+    if (selectedMood) {
+      saveMoodEntry(selectedDate, selectedMood, currentJournal, newSelectedTags);
+      setMoodEntries(prev => ({
+        ...prev,
+        [selectedDate]: { 
+          mood: selectedMood, 
+          journal: currentJournal,
+          tags: newSelectedTags
+        }
+      }));
+      
+      // Optional: Show a notification
+      setNotification(`Tags updated for ${selectedDate === todayString ? "today" : selectedDate}`);
+    }
   };
 
-  const handleAddCustomTag = (tagName: string) => {
+  const handleRemoveTag = (tagId: string) => {
+    // Remove from currentTags if selected
+    setCurrentTags(prev => prev.filter(id => id !== tagId));
+    
+    // Remove from availableTags if it's a custom tag
+    const isCustomTag = !DEFAULT_TAGS.some(tag => tag.id === tagId);
+    if (isCustomTag) {
+      const updatedTags = availableTags.filter(tag => tag.id !== tagId);
+      setAvailableTags(updatedTags);
+      
+      // Update localStorage
+      const customTags = updatedTags.filter(
+        tag => !DEFAULT_TAGS.some(defaultTag => defaultTag.id === tag.id)
+      );
+      saveCustomTags(customTags);
+    }
+  };
+    const handleAddCustomTag = (tagName: string) => {
     const newTagId = tagName.toLowerCase().replace(/\s+/g, "-");
     if (!availableTags.find((tag) => tag.id === newTagId)) {
-      const newTag: Tag = { id: newTagId, name: tagName };
-      setAvailableTags((prevTags) => [...prevTags, newTag]);
-      setCurrentTags((prevTags) => [...prevTags, newTagId]); // Auto-select new custom tag
-      // Note: You might want to persist custom tags to localStorage separately
-      // if you want them to be available across sessions beyond the current one.
+      const newTag: Tag = { id: newTagId, name: tagName, isCustom: true };
+      
+      // Update state with new tag
+      const updatedTags = [...availableTags, newTag];
+      setAvailableTags(updatedTags);
+      
+      // Auto-select new custom tag and save immediately
+      const updatedTags2 = [...currentTags, newTagId];
+      setCurrentTags(updatedTags2);
+      
+      // Save immediately if a mood is selected
+      if (selectedMood) {
+        saveMoodEntry(selectedDate, selectedMood, currentJournal, updatedTags2);
+        setMoodEntries(prev => ({
+          ...prev,
+          [selectedDate]: { 
+            mood: selectedMood, 
+            journal: currentJournal,
+            tags: updatedTags2
+          }
+        }));
+      }
+      
+      // Save custom tags to localStorage for persistence
+      // Filter out default tags to avoid duplication
+      const customTags = updatedTags.filter(
+        tag => !DEFAULT_TAGS.some(defaultTag => defaultTag.id === tag.id)
+      );
+      saveCustomTags(customTags);
     }
   };
 
@@ -158,18 +237,19 @@ function App() {
         {/* Two-column layout container - always rendered */}
         <div className="flex flex-row items-start mt-4 w-full gap-4">
           {/* Left Column: Journal and Tags - NOW ALWAYS VISIBLE */}
-          <div className="flex-none w-1/3 flex flex-col gap-4">
-            <JournalInput
+          <div className="flex-none w-1/3 flex flex-col gap-4">            <JournalInput
               key={`journal-${selectedDate}`}
               onSaveJournal={handleSaveJournal}
               initialJournal={currentJournal}
-            />
-            <ActivityTagSelector
+              moodSelected={selectedMood !== null}
+            />            <ActivityTagSelector
               key={`tags-${selectedDate}`}
               availableTags={availableTags}
               selectedTags={currentTags}
               onTagSelectionChange={handleTagSelectionChange}
               onAddCustomTag={handleAddCustomTag}
+              onRemoveTag={handleRemoveTag}
+              moodSelected={selectedMood !== null}
             />
           </div>
 

@@ -46,4 +46,16 @@ export const saveMoodEntry = (
 export const getMoodEntry = (date: string): { mood: MoodType; journal?: string; tags?: string[] } | undefined => {
   const entries = getMoodEntries();
   return entries[date]; // This will now include tags if they exist
+}
+
+// Custom Tags Storage
+const CUSTOM_TAGS_KEY = 'emojiMoodTrackerCustomTags';
+
+export const saveCustomTags = (tags: { id: string, name: string }[]): void => {
+  localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify(tags));
+};
+
+export const getCustomTags = (): { id: string, name: string }[] => {
+  const tagsJson = localStorage.getItem(CUSTOM_TAGS_KEY);
+  return tagsJson ? JSON.parse(tagsJson) : [];
 };
