@@ -12,6 +12,7 @@ interface CalendarDayProps {
   isToday: boolean;
   isSelected: boolean;
   onSelect: (dateString: string) => void;
+  hasJournal?: boolean; // Add hasJournal prop
 }
 
 const CalendarDay: React.FC<CalendarDayProps> = ({ 
@@ -23,7 +24,8 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   isCurrentMonth, 
   isToday,
   isSelected,
-  onSelect
+  onSelect,
+  hasJournal
 }) => {
   // Get the style based on the mood
   const getMoodStyle = () => {
@@ -46,6 +48,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     ${isSelected ? 'ring-2 ring-green-500 ring-offset-1' : ''}
     ${mood && isCurrentMonth ? 'font-medium' : ''}
     ${isCurrentMonth ? 'cursor-pointer hover:bg-gray-100' : ''}
+    relative // Add relative positioning for the icon
   `;
 
   const handleClick = () => {
@@ -63,6 +66,12 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
         title={isSelected ? `Selected: ${dateString}` : dateString}
       >
         {day}
+        {hasJournal && isCurrentMonth && (
+          <span 
+            className="absolute top-1 right-1 w-2 h-2 bg-sky-500 rounded-full"
+            title="Has journal entry"
+          ></span>
+        )}
       </div>
     </div>
   );
