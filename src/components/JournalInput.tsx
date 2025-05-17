@@ -5,6 +5,8 @@ interface JournalInputProps {
   initialJournal?: string;
 }
 
+const MAX_JOURNAL_LENGTH = 100; // Define a max length
+
 const JournalInput: React.FC<JournalInputProps> = ({ onSaveJournal, initialJournal = '' }) => {
   const [journal, setJournal] = useState(initialJournal);
 
@@ -14,26 +16,35 @@ const JournalInput: React.FC<JournalInputProps> = ({ onSaveJournal, initialJourn
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveJournal(journal);
+    onSaveJournal(journal.trim());
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setJournal(e.target.value);
+  };
+
+  const charsLeft = MAX_JOURNAL_LENGTH - journal.length;
+
   return (
-    <form onSubmit={handleSubmit} className="mt-4 w-full">
-      <label htmlFor="journal" className="block text-sm font-medium text-gray-700 mb-1">
+    <form onSubmit={handleSubmit} className="p-4 bg-white shadow-md rounded-lg w-full">
+      <label htmlFor="journalEntry" className="block text-sm font-medium text-gray-700 mb-1">
         A few words about today? (Optional)
       </label>
       <textarea
-        id="journal"
-        name="journal"
-        rows={3}
-        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
+        id="journalEntry"
         value={journal}
-        onChange={(e) => setJournal(e.target.value)}
-        placeholder="e.g., #work, #family, had a great day..."
+        onChange={handleChange}
+        placeholder="Few words or #tags (max 100 chars): e.g., #work, #travel, today happy - travel"
+        rows={3}
+        className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-none"
+        maxLength={MAX_JOURNAL_LENGTH} // Enforce max length
       />
+      <div className="text-xs text-gray-500 mt-1 text-right">
+        {charsLeft} characters remaining
+      </div>
       <button
         type="submit"
-        className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        className="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
         Save Journal
       </button>
