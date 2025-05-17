@@ -55,7 +55,7 @@ const Calendar: React.FC<CalendarProps> = ({
         year: prevMonthYear,
         isCurrentMonth: false,
         isToday: isTodayHelper(date),
-        mood: moodEntries[dateString] || null
+        mood: moodEntries[dateString]?.mood || null // Changed this line
       });
     }
     
@@ -70,7 +70,7 @@ const Calendar: React.FC<CalendarProps> = ({
         year: currentYear,
         isCurrentMonth: true,
         isToday: isTodayHelper(date),
-        mood: moodEntries[dateString] || null
+        mood: moodEntries[dateString]?.mood || null // Changed this line
       });
     }
     
@@ -91,7 +91,7 @@ const Calendar: React.FC<CalendarProps> = ({
         year: nextMonthYear,
         isCurrentMonth: false,
         isToday: isTodayHelper(date),
-        mood: moodEntries[dateString] || null
+        mood: moodEntries[dateString]?.mood || null // Changed this line
       });
     }
     
