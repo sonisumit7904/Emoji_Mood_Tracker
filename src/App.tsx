@@ -6,6 +6,7 @@ import Notification from "./components/Notification";
 import JournalInput from "./components/JournalInput";
 import ActivityTagSelector from "./components/ActivityTagSelector"; // Import new component
 import MoodChart from "./components/MoodChart"; // Import the new MoodChart component
+import YearInPixels from './components/YearInPixels';
 import { MoodEntries, MoodType } from "./types/types";
 import { getTodayString } from "./utils/dateUtils";
 import { getMoodEntries, saveMoodEntry, saveCustomTags, getCustomTags } from "./utils/localStorage";
@@ -49,6 +50,8 @@ function App() {
 
   // Notification state
   const [notification, setNotification] = useState<string | null>(null);
+  const [showYearInPixels, setShowYearInPixels] = useState(false); // Revert to false
+
   // Load mood entries and custom tags from localStorage on component mount
   useEffect(() => {
     const entries = getMoodEntries();
@@ -219,65 +222,100 @@ function App() {
     }
   };
 
+  const handleDayClickFromYearView = (dateString: string) => {
+    const date = new Date(dateString);
+    setSelectedDate(date);
+    setCurrentMonth(date.getMonth());
+    setCurrentYear(date.getFullYear());
+    setShowYearInPixels(false); // Optionally hide year view and show calendar view
+    // Or scroll to the calendar view if both are visible
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start pt-12 px-4">
+    <div className="min-h-screen bg-slate-100 text-slate-800 p-4 flex flex-col items-center font-sans">
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">
           Emoji Mood Tracker
         </h1>
-        <p className="text-gray-600">Track your daily mood with emojis</p>
+        <p className="text-slate-600">Track your daily mood with emojis</p>
       </header>
 
-      <main className="w-full max-w-4xl flex flex-col items-center">
+      <main className="w-full max-w-5xl flex flex-col items-center">
         <EmojiSelector
           selectedMood={selectedMood}
           onSelectMood={handleSelectMood}
         />
 
-        {/* Two-column layout container - always rendered */}
-        <div className="flex flex-row items-start mt-4 w-full gap-4">
-          {/* Left Column: Journal and Tags - NOW ALWAYS VISIBLE */}
-          <div className="flex-none w-1/3 flex flex-col gap-4">            <JournalInput
-              key={`journal-${selectedDate}`}
-              onSaveJournal={handleSaveJournal}
-              initialJournal={currentJournal}
-              moodSelected={selectedMood !== null}
-            />            <ActivityTagSelector
-              key={`tags-${selectedDate}`}
-              availableTags={availableTags}
-              selectedTags={currentTags}
-              onTagSelectionChange={handleTagSelectionChange}
-              onAddCustomTag={handleAddCustomTag}
-              onRemoveTag={handleRemoveTag}
-              moodSelected={selectedMood !== null}
-            />
-          </div>
+        <div className="w-full max-w-5xl mx-auto mt-6">
+          <button 
+            onClick={() => setShowYearInPixels(!showYearInPixels)}
+            className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md shadow-sm transition-colors w-full md:w-auto"
+          >
+            {showYearInPixels ? 'Show Calendar View' : 'Show Year in Pixels'}
+          </button>
 
-          {/* Right Column: Calendar and related info - always rendered */}
-          <div className="flex-grow">
-            <div className="mb-4 text-center mt-4">
-              <h3 className="text-lg font-medium text-gray-800">
-                Logging mood for:{" "}
-                <span className="font-bold">
-                  {selectedDate === todayString ? "Today" : selectedDate}
-                </span>
-              </h3>
+          {showYearInPixels ? (
+            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full overflow-x-auto">
+              <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
             </div>
-            <Calendar
-              moodEntries={moodEntries}
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              onChangeMonth={handleChangeMonth}
-              onDateSelect={handleDateSelect}
-              selectedDate={selectedDate}
-            />
-            <MoodLegend />
-          </div>
-        </div>        {/* Add the MoodChart component below the main two-column layout */}
-        <MoodChart moodEntries={moodEntries} month={currentMonth} year={currentYear} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-6">
+              {/* Left Column: Journal and Tags */}
+              <div className="md:col-span-1 flex flex-col gap-6">
+                <div className="p-6 bg-white shadow-lg rounded-lg">
+                  <JournalInput
+                    key={`journal-${selectedDate}`}
+                    onSaveJournal={handleSaveJournal}
+                    initialJournal={currentJournal}
+                    moodSelected={selectedMood !== null}
+                  />
+                </div>
+                <div className="p-6 bg-white shadow-lg rounded-lg">
+                  <ActivityTagSelector
+                    key={`tags-${selectedDate}`}
+                    availableTags={availableTags}
+                    selectedTags={currentTags}
+                    onTagSelectionChange={handleTagSelectionChange}
+                    onAddCustomTag={handleAddCustomTag}
+                    onRemoveTag={handleRemoveTag}
+                    moodSelected={selectedMood !== null}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Calendar, Legend, and Chart */}
+              <div className="md:col-span-2 flex flex-col gap-6">
+                <div className="p-6 bg-white shadow-lg rounded-lg">
+                  <div className="mb-4 text-center">
+                    <h3 className="text-lg font-medium text-slate-700">
+                      Logging mood for:{" "}
+                      <span className="font-bold text-slate-900">
+                        {selectedDate === todayString ? "Today" : selectedDate}
+                      </span>
+                    </h3>
+                  </div>
+                  <Calendar
+                    moodEntries={moodEntries}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    onChangeMonth={handleChangeMonth}
+                    onDateSelect={handleDateSelect}
+                    selectedDate={selectedDate}
+                  />
+                  <div className="mt-6">
+                    <MoodLegend />
+                  </div>
+                </div>
+                <div className="p-6 bg-white shadow-lg rounded-lg">
+                  <MoodChart moodEntries={moodEntries} month={currentMonth} year={currentYear} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
-      <footer className="mt-auto py-6 text-center text-gray-500 text-sm">
+      <footer className="mt-auto py-6 text-center text-slate-500 text-sm">
         {new Date().getFullYear()} Emoji Mood Tracker
       </footer>
 
