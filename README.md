@@ -6,9 +6,16 @@ Emoji Mood Tracker is a user-friendly application designed to help you track you
 ## Live Demo / Screenshots
 Check out our guide video to see Emoji Mood Tracker in action:
 
-https://github.com/user/EmojiMoodTracker/assets/videos/Emoji_Mood_Tracker_Intro.mp4
+<video width="640" height="360" controls>
+  <source src="./Emoji_Mood_Tracker_Intro.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
-If the video above doesn't play, you can download it directly from [here](./Emoji_Mood_Tracker_Intro.mp4).
+If the video above doesn't play, you can also:
+- [Download the video directly](./Emoji_Mood_Tracker_Intro.mp4)
+- View a few screenshots below:
+
+<img src="./HomePage.png" alt="Emoji Mood Tracker Screenshot" width="600"/>
 
 ## Features
 - **Daily Mood Logging:** Easily select an emoji representing your mood for any given day.
