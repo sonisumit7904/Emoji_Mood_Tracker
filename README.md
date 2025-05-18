@@ -6,7 +6,7 @@ Emoji Mood Tracker is a user-friendly application designed to help you track you
 ## Live Demo / Screenshots
 Check out our guide video to see Emoji Mood Tracker in action:
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/mxkMOzb3PKQ?si=6tdknf5c2tjoS2Jn&amp;controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/mxkMOzb3PKQ?si=3p6_0FTBn9fIgFLr&amp;controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 Watch our local guide video:
 
