@@ -4,7 +4,11 @@
 Emoji Mood Tracker is a user-friendly application designed to help you track your daily moods, jot down thoughts in a journal, and associate activities with your entries. Visualize your mood patterns over time with an interactive calendar and charts. Built with React, TypeScript, and Vite, it offers a fast and modern experience.
 
 ## Live Demo / Screenshots
-*(Placeholder: Add a link to your live demo if available, or insert screenshots of the application here. You can describe key UI elements like the calendar view, mood selection, journal input, activity tags, and charts.)*
+Check out our guide video to see Emoji Mood Tracker in action:
+
+https://github.com/user/EmojiMoodTracker/assets/videos/Emoji_Mood_Tracker_Intro.mp4
+
+If the video above doesn't play, you can download it directly from [here](./Emoji_Mood_Tracker_Intro.mp4).
 
 ## Features
 - **Daily Mood Logging:** Easily select an emoji representing your mood for any given day.
