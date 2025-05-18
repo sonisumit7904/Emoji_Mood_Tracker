@@ -47,10 +47,10 @@ function App() {
   // State for selected tags
   const [currentTags, setCurrentTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>(DEFAULT_TAGS); // State for all available tags
-
-  // Notification state
+  // Notification state  
   const [notification, setNotification] = useState<string | null>(null);
-  const [showYearInPixels, setShowYearInPixels] = useState(false); // Revert to false
+  const [showYearInPixels, setShowYearInPixels] = useState(false);
+  const [showMonthChart, setShowMonthChart] = useState(false);
 
   // Load mood entries and custom tags from localStorage on component mount
   useEffect(() => {
@@ -238,27 +238,87 @@ function App() {
           Emoji Mood Tracker
         </h1>
         <p className="text-slate-600">Track your daily mood with emojis</p>
-      </header>
-
-      <main className="w-full max-w-5xl flex flex-col items-center">
+      </header>      <main className="w-full max-w-5xl flex flex-col items-center">
         <EmojiSelector
           selectedMood={selectedMood}
           onSelectMood={handleSelectMood}
         />
 
         <div className="w-full max-w-5xl mx-auto mt-6">
-          <button 
-            onClick={() => setShowYearInPixels(!showYearInPixels)}
-            className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md shadow-sm transition-colors w-full md:w-auto"
-          >
-            {showYearInPixels ? 'Show Calendar View' : 'Show Year in Pixels'}
-          </button>
-
-          {showYearInPixels ? (
+          <div className="flex flex-wrap gap-3 mb-4">
+            <button 
+              onClick={() => {
+                setShowYearInPixels(false);
+                setShowMonthChart(false);
+              }}
+              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
+                !showYearInPixels && !showMonthChart 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Calendar View
+            </button>            <button 
+              onClick={() => {
+                setShowYearInPixels(true);
+                setShowMonthChart(false);
+              }}
+              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
+                showYearInPixels 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Year in Pixels
+            </button>
+            <button 
+              onClick={() => {
+                setShowYearInPixels(false);
+                setShowMonthChart(true);
+              }}
+              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
+                showMonthChart 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Month Chart
+            </button>
+          </div>          {showYearInPixels ? (
             <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full">
               {/* Removed MoodLegend from here */}
               <div className="overflow-x-auto"> {/* YearInPixels container */}
                 <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
+              </div>
+            </div>
+          ) : showMonthChart ? (
+            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full">
+              <h3 className="text-2xl font-semibold text-slate-700 mb-6 text-center">
+                {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear} Mood Chart
+              </h3>              <div className="h-[500px]"> {/* Fixed height for better visualization */}
+                <MoodChart 
+                  key={`mood-chart-${currentMonth}-${currentYear}`} 
+                  moodEntries={moodEntries} 
+                  month={currentMonth} 
+                  year={currentYear} 
+                />
+              </div>
+              <div className="mt-6 flex justify-center">
+                <MoodLegend horizontal={true} />
+              </div>
+              <div className="mt-6 flex justify-center gap-4">
+                <button
+                  onClick={() => handleChangeMonth('prev')}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                >
+                  ← Previous Month
+                </button>
+                <button
+                  onClick={() => handleChangeMonth('next')}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                >
+                  Next Month →
+                </button>
               </div>
             </div>
           ) : (
@@ -307,10 +367,7 @@ function App() {
                   />                  <div className="mt-6">
                     <MoodLegend horizontal={true} />
                   </div>
-                </div>
-                <div className="p-6 bg-white shadow-lg rounded-lg">
-                  <MoodChart moodEntries={moodEntries} month={currentMonth} year={currentYear} />
-                </div>
+                </div>                {/* Removed the MoodChart component from here since we now have a dedicated Month Chart view */}
               </div>
             </div>
           )}

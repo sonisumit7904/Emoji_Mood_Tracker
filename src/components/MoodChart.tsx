@@ -10,12 +10,14 @@ interface MoodChartProps {
   moodEntries: MoodEntries;
   month?: number; // 0-indexed (0 = January, 11 = December)
   year?: number;
+  expanded?: boolean; // Add expanded prop for full-size chart in chart view
 }
 
 const MoodChart: React.FC<MoodChartProps> = ({ 
   moodEntries, 
   month = new Date().getMonth(), 
-  year = new Date().getFullYear() 
+  year = new Date().getFullYear(),
+  expanded = false // Default to false for normal size
 }) => {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
@@ -222,12 +224,13 @@ const MoodChart: React.FC<MoodChartProps> = ({
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   const monthName = monthNames[month];
-
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg mt-6 w-full" style={{ height: '350px' }}>
-      <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">
-        {monthName} {year} Mood Chart
-      </h3>
+    <div className={`p-4 bg-white shadow-md rounded-lg ${expanded ? '' : 'mt-6'} w-full`} style={{ height: expanded ? '500px' : '350px' }}>
+      {!expanded && (
+        <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">
+          {monthName} {year} Mood Chart
+        </h3>
+      )}
       <div ref={chartContainerRef} style={{ position: 'relative', height: '100%', width: '100%', paddingLeft: '40px' }}>
         <canvas ref={chartRef} style={{ height: '100%', width: '100%' }}></canvas>
       </div>
