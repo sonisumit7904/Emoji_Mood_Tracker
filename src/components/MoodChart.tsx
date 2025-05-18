@@ -30,8 +30,10 @@ const MoodChart: React.FC<MoodChartProps> = ({
     
     const labels: string[] = [];
     const dataPoints: (number | null)[] = [];
-    const pointBackgroundColors: string[] = [];
-    const pointRadii: number[] = [];
+    const pointBackgroundColors: string[] = []; // Existing
+    const pointRadii: number[] = []; // Existing, will be modified
+    const pointBorderColorArray: string[] = []; // New for dataset
+    const pointBorderWidthArray: number[] = []; // New for dataset
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
@@ -45,13 +47,44 @@ const MoodChart: React.FC<MoodChartProps> = ({
         dataPoints.push(score);
         const moodData = getMoodDataByScore(score);
         pointBackgroundColors.push(moodData?.color || 'rgba(0,0,0,0.1)');
-        pointRadii.push(5);
+        pointRadii.push(5); // Default radius for data points
+        pointBorderColorArray.push(moodData?.color || 'rgba(0,0,0,0.1)'); // Default border, same as background
+        pointBorderWidthArray.push(1); // Default border width
       } else {
         dataPoints.push(null);
         pointBackgroundColors.push('rgba(0,0,0,0.1)');
-        pointRadii.push(2);
+        pointRadii.push(2); // Smaller radius for null points
+        pointBorderColorArray.push('rgba(0,0,0,0.1)');
+        pointBorderWidthArray.push(1);
       }
     }
+
+    // Highlight peaks and troughs
+    const validScores = dataPoints.filter(score => score !== null) as number[];
+    if (validScores.length > 0) {
+      const minScore = Math.min(...validScores);
+      const maxScore = Math.max(...validScores);
+
+      // Only highlight if there's a variation in scores or if it's a single data point
+      if (minScore < maxScore) {
+        for (let i = 0; i < dataPoints.length; i++) {
+          const score = dataPoints[i];
+          if (score === minScore || score === maxScore) {
+            pointRadii[i] = 8; // Larger radius for peaks/troughs
+            pointBorderColorArray[i] = 'rgba(20, 20, 20, 0.95)'; // Distinct dark border
+            pointBorderWidthArray[i] = 2; // Thicker border
+          }
+        }
+      } else if (validScores.length === 1) { // If only one data point, highlight it
+        const singlePointIndex = dataPoints.findIndex(p => p !== null);
+        if (singlePointIndex !== -1) {
+            pointRadii[singlePointIndex] = 8;
+            pointBorderColorArray[singlePointIndex] = 'rgba(20, 20, 20, 0.95)';
+            pointBorderWidthArray[singlePointIndex] = 2;
+        }
+      }
+    }
+
 
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
@@ -81,9 +114,11 @@ const MoodChart: React.FC<MoodChartProps> = ({
             borderColor: 'rgba(75, 192, 192, 1)', 
             tension: 0.3,
             spanGaps: true,
-            pointRadius: pointRadii,
+            pointRadius: pointRadii, // Use the potentially modified pointRadii
             pointHoverRadius: 7,
             pointBackgroundColor: pointBackgroundColors,
+            pointBorderColor: pointBorderColorArray, // Add pointBorderColor
+            pointBorderWidth: pointBorderWidthArray, // Add pointBorderWidth
             segment: {
               borderColor: (context: ScriptableLineSegmentContext) => {
                 const p0 = context.p0DataIndex;

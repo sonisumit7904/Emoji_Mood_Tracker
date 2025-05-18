@@ -12,6 +12,8 @@ export interface MoodEntry {
   mood: MoodType;
   journal?: string; 
   tags?: string[]; 
+  intensity?: number; // Added for mood intensity
+  photoUrl?: string; // Task 3.3: Optional photo URL
 }
 
 export interface MoodEntries {
@@ -19,5 +21,7 @@ export interface MoodEntries {
     mood: MoodType; 
     journal?: string; 
     tags?: string[]; 
+    intensity?: number; // Added for mood intensity
+    photoUrl?: string; // Task 3.3: Optional photo URL
   };
 }

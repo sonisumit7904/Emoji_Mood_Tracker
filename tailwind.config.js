@@ -4,21 +4,29 @@ export default {
   theme: {
     extend: {
       colors: {
-        'primary': '#3B82F6',        // New: Was brand-blue
-        'accent': '#10B981',         // New: Was brand-teal
-        'background': '#F3F4F6',     // New: Was brand-background
-        'text-primary': '#1F2937',   // New: Was brand-text
-        'text-secondary': '#4B5563', // New: For secondary text
+        'primary': '#4A90E2',        // Calming Blue
+        'accent': '#50E3C2',         // Vibrant Teal
+        'background': '#F7F9FA',     // Light Gray
+        'text-primary': '#333333',   // Dark Gray
+        'text-secondary': '#767676', // Medium Gray
         // Mood colors - Retained
-        'mood-veryhappy': '#60a5fa',
-        'mood-happy': '#34d399',
-        'mood-neutral': '#facc15',
-        'mood-sad': '#fb923c',
-        'mood-verysad': '#f87171',
+        'mood-veryhappy': '#60A5FA', // Blue 500
+        'mood-happy': '#34D399',     // Green 400
+        'mood-neutral': '#FACC15',   // Yellow 400
+        'mood-sad': '#FB923C',       // Orange 400
+        'mood-verysad': '#F87171',   // Red 400
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'], // Added Inter font
       },
+      spacing: { // Added for consistent spacing - Task 1.2
+        '128': '32rem',
+      },
+      borderRadius: { // Added for consistent UI components - Task 1.4
+        'xl': '0.75rem',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+      }
     },
   },
   plugins: [],

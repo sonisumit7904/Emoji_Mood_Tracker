@@ -35,3 +35,12 @@ export const isToday = (date: Date): boolean => {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear();
 };
+
+export const formatDateToReadable = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+};

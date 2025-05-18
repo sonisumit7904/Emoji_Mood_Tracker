@@ -7,6 +7,7 @@ import JournalInput from "./components/JournalInput";
 import ActivityTagSelector from "./components/ActivityTagSelector";
 import MoodChart from "./components/MoodChart";
 import YearInPixels from './components/YearInPixels';
+import MoodHistoryFeed from './components/MoodHistoryFeed'; // Task 3.2
 import { MoodEntries, MoodType } from "./types/types";
 import { getTodayString, formatDateToString } from "./utils/dateUtils";
 import { getMoodEntries, saveMoodEntry, saveCustomTags, getCustomTags } from "./utils/localStorage";
@@ -34,16 +35,21 @@ function App() {
   const [moodEntries, setMoodEntries] = useState<MoodEntries>({});
 
   const todayString = getTodayString();
-  const [selectedDate, setSelectedDate] = useState<string>(todayString);  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(todayString);
+  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [currentJournal, setCurrentJournal] = useState<string | undefined>(
     undefined
   );
+  const [currentIntensity, setCurrentIntensity] = useState<number | undefined>(undefined); // Added
 
   const [currentTags, setCurrentTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>(DEFAULT_TAGS);
   const [notification, setNotification] = useState<string | null>(null);
   const [showYearInPixels, setShowYearInPixels] = useState(false);
   const [showMonthChart, setShowMonthChart] = useState(false);
+  const [showMoodHistory, setShowMoodHistory] = useState(false); // Task 3.2: State for history feed
+  // const [customMoods, setCustomMoods] = useState<MoodData[]>([]); // Task 2.3 - Commented out, ensure MoodData is imported if used
+  // const [showCustomMoodModal, setShowCustomMoodModal] = useState(false); // Task 2.3 - Commented out
 
   useEffect(() => {
     const entries = getMoodEntries();
@@ -59,30 +65,52 @@ function App() {
       });
       setAvailableTags(mergedTags);
     }
+    // Load custom moods - Task 2.3
+    // const savedCustomMoods = getCustomMoods(); // Assuming a getCustomMoods function in localStorage.ts
+    // setCustomMoods(savedCustomMoods);
   }, []);
   useEffect(() => {
     const entry = moodEntries[selectedDate];
     setSelectedMood(entry?.mood || null);
     setCurrentJournal(entry?.journal || "");
     setCurrentTags(entry?.tags || []);
+    setCurrentIntensity(entry?.intensity); // Added: Load intensity
   }, [selectedDate, moodEntries]);
 
-  const handleSelectMood = (mood: MoodType) => {
-    setMoodEntries(prevMoodEntries => {
-      const newMoodEntries = { ...prevMoodEntries }; 
-      const journalToSave = newMoodEntries[selectedDate]?.journal || currentJournal || "";
-      const tagsToSave = newMoodEntries[selectedDate]?.tags || currentTags || [];
+  const handleSelectMood = (mood: MoodType, intensity?: number) => {
+    // If intensity is not explicitly passed with this selection,
+    // and the mood selected is the same as the already selected mood,
+    // then retain the currentIntensity. Otherwise, use the new intensity or default.
+    const intensityToSave = intensity !== undefined ? intensity : (mood === selectedMood ? currentIntensity : 5);
 
+
+    setMoodEntries(prevMoodEntries => {
+      const newMoodEntries = { ...prevMoodEntries };
+      const entryToUpdate = newMoodEntries[selectedDate] || {};
       newMoodEntries[selectedDate] = {
+        ...entryToUpdate,
         mood: mood,
-        journal: journalToSave,
-        tags: tagsToSave,
+        journal: entryToUpdate.journal || currentJournal || '',
+        tags: entryToUpdate.tags || currentTags || [],
+        intensity: intensityToSave,
+        // Task 3.3: Simulate adding a photo URL for demonstration
+        // In a real app, this would come from user input
+        photoUrl: mood === 'happy' && selectedDate.endsWith('01') ? 'https://picsum.photos/seed/picsum/200/300' : entryToUpdate.photoUrl,
       };
-      saveMoodEntry(selectedDate, mood, journalToSave, tagsToSave); 
-      return newMoodEntries; 
+      saveMoodEntry(
+        selectedDate,
+        mood,
+        newMoodEntries[selectedDate]?.journal,
+        newMoodEntries[selectedDate]?.tags,
+        intensityToSave,
+        newMoodEntries[selectedDate]?.photoUrl // Task 3.3: Pass photoUrl to save function
+      );
+      return newMoodEntries;
     });
 
     setSelectedMood(mood);
+    if (intensityToSave !== undefined) setCurrentIntensity(intensityToSave); // Update intensity state
+
     setNotification(
       `Mood saved for ${selectedDate === todayString ? "today" : selectedDate}!`
     );
@@ -92,21 +120,43 @@ function App() {
     setCurrentJournal(journal);
     if (selectedMood) {
       setMoodEntries(prevMoodEntries => {
-        const newMoodEntries = { ...prevMoodEntries }; 
+        const newMoodEntries = { ...prevMoodEntries };
+        const entryToUpdate = newMoodEntries[selectedDate] || {};
         newMoodEntries[selectedDate] = {
-          ...(newMoodEntries[selectedDate] || {}),
-          mood: selectedMood, 
+          ...entryToUpdate,
+          mood: selectedMood, // Ensure mood is present
           journal: journal,
-          tags: newMoodEntries[selectedDate]?.tags || currentTags || [], 
+          tags: entryToUpdate.tags || currentTags || [], // Preserve tags
+          intensity: entryToUpdate.intensity || currentIntensity, // Preserve intensity
+          // Task 3.3: Simulate adding a photo URL for demonstration if not already present
+          photoUrl: entryToUpdate.photoUrl || (selectedDate.endsWith('05') ? 'https://picsum.photos/seed/another/200/300' : undefined),
         };
-        saveMoodEntry(selectedDate, selectedMood, journal, newMoodEntries[selectedDate]?.tags || currentTags || []);
-        return newMoodEntries; 
+        saveMoodEntry(
+          selectedDate,
+          selectedMood,
+          journal,
+          newMoodEntries[selectedDate]?.tags || currentTags || [],
+          newMoodEntries[selectedDate]?.intensity || currentIntensity,
+          newMoodEntries[selectedDate]?.photoUrl // Task 3.3: Pass photoUrl to save function
+        );
+        return newMoodEntries;
       });
       setNotification(
         `Journal saved for ${selectedDate === todayString ? "today" : selectedDate
         }!`
       );
-    } else {
+
+      // Task 2.4: Gentle prompt for negative moods
+      if (selectedMood === 'sad' || selectedMood === 'verysad') {
+        if (!journal) { // Only prompt if journal is empty
+          setNotification(
+            `Journal saved. Consider adding a note about why you're feeling ${selectedMood}.`
+          );
+        }
+      } else {
+        // User might be trying to save journal without selecting mood
+        // Notification/warning is handled in JournalInput component
+      }
     }
   };
 
@@ -134,15 +184,23 @@ function App() {
     setCurrentTags(newSelectedTags);
     if (selectedMood) {
       setMoodEntries(prevMoodEntries => {
-        const newMoodEntries = { ...prevMoodEntries }; 
+        const newMoodEntries = { ...prevMoodEntries };
+        const entryToUpdate = newMoodEntries[selectedDate] || {};
         newMoodEntries[selectedDate] = {
-          ...(newMoodEntries[selectedDate] || {}),
-          mood: selectedMood, 
-          journal: newMoodEntries[selectedDate]?.journal || currentJournal || "", 
+          ...entryToUpdate,
+          mood: selectedMood,
+          journal: entryToUpdate.journal || currentJournal || "",
           tags: newSelectedTags,
+          intensity: entryToUpdate.intensity || currentIntensity, // Preserve intensity
         };
-        saveMoodEntry(selectedDate, selectedMood, newMoodEntries[selectedDate]?.journal || currentJournal || "", newSelectedTags);
-        return newMoodEntries; 
+        saveMoodEntry(
+          selectedDate,
+          selectedMood,
+          newMoodEntries[selectedDate]?.journal || currentJournal || "",
+          newSelectedTags,
+          newMoodEntries[selectedDate]?.intensity || currentIntensity // Pass intensity
+        );
+        return newMoodEntries;
       });
       setNotification(
         `Tags updated for ${selectedDate === todayString ? "today" : selectedDate
@@ -166,7 +224,7 @@ function App() {
     }
   };
     const handleAddCustomTag = (tagName: string) => {
-    const newTagId = tagName.toLowerCase().replace(/\s+/g, "-");
+    const newTagId = tagName.toLowerCase().replace(/\\s+/g, "-");
     if (!availableTags.find((tag) => tag.id === newTagId)) {
       const newTag: Tag = { id: newTagId, name: tagName, isCustom: true };
       const updatedAvailableTags = [...availableTags, newTag];
@@ -177,15 +235,23 @@ function App() {
 
       if (selectedMood) {
         setMoodEntries(prevMoodEntries => {
-          const newMoodEntries = { ...prevMoodEntries }; 
+          const newMoodEntries = { ...prevMoodEntries };
+          const entryToUpdate = newMoodEntries[selectedDate] || {};
           newMoodEntries[selectedDate] = {
-            ...(newMoodEntries[selectedDate] || {}),
-            mood: selectedMood, 
-            journal: newMoodEntries[selectedDate]?.journal || currentJournal || "", 
+            ...entryToUpdate,
+            mood: selectedMood,
+            journal: entryToUpdate.journal || currentJournal || "",
             tags: newSelectedTags,
+            intensity: entryToUpdate.intensity || currentIntensity, // Preserve intensity
           };
-          saveMoodEntry(selectedDate, selectedMood, newMoodEntries[selectedDate]?.journal || currentJournal || "", newSelectedTags);
-          return newMoodEntries; 
+          saveMoodEntry(
+            selectedDate,
+            selectedMood,
+            newMoodEntries[selectedDate]?.journal || currentJournal || "",
+            newSelectedTags,
+            newMoodEntries[selectedDate]?.intensity || currentIntensity // Pass intensity
+          );
+          return newMoodEntries;
         });
       }
       const customTags = updatedAvailableTags.filter(
@@ -196,27 +262,72 @@ function App() {
   };
 
   const handleDayClickFromYearView = (dateString: string) => {
-    const dateObject = new Date(dateString); 
+    const dateObject = new Date(dateString);
 
-    setSelectedDate(formatDateToString(dateObject)); 
+    setSelectedDate(formatDateToString(dateObject));
     setCurrentMonth(dateObject.getMonth());
     setCurrentYear(dateObject.getFullYear());
-    setShowYearInPixels(false); 
+    setShowYearInPixels(false);
+    setShowMonthChart(false);
+    setShowMoodHistory(false); // Ensure mood history is also hidden
   };
 
+  const handleHistoryEntryClick = (dateString: string) => {
+    const dateObject = new Date(dateString);
+    setSelectedDate(formatDateToString(dateObject));
+    setCurrentMonth(dateObject.getMonth());
+    setCurrentYear(dateObject.getFullYear());
+    setShowMoodHistory(false); // Hide history feed
+    setShowYearInPixels(false); // Ensure other views are hidden
+    setShowMonthChart(false);   // Ensure other views are hidden
+  };
+
+  // Task 2.3: Function to add custom mood (basic structure)
+  // const handleAddCustomMood = (newMood: MoodData) => { // Ensure MoodData is imported if used
+  //   // setCustomMoods(prev => [...prev, newMood]);
+  //   // saveCustomMoods([...customMoods, newMood]); // Assuming a saveCustomMoods function
+  //   // setShowCustomMoodModal(false);
+  //   // Potentially update MOODS array or handle it separately in EmojiSelector
+  //   alert("Custom mood functionality would be implemented here.");
+  // };
+
+  const isTodaySelectedAndNotLogged = 
+    selectedDate === todayString && 
+    !moodEntries[todayString]?.mood &&
+    !showYearInPixels && !showMonthChart && !showMoodHistory;
+
   return (
-    <div className="min-h-screen bg-background text-text-primary p-6 md:p-8 flex flex-col items-center">
+    <div className="min-h-screen bg-background text-text-primary p-6 md:p-8 flex flex-col items-center font-sans">
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-bold text-text-primary mb-3">
           Emoji Mood Tracker
         </h1>
-        <p className="text-text-secondary">Track your daily mood with emojis</p>
+        {isTodaySelectedAndNotLogged ? (
+          <p className="text-accent text-lg animate-pulse">How are you feeling today?</p> // Task 5.4: Gentle prompt
+        ) : (
+          <p className="text-text-secondary text-lg">Track your daily mood with emojis</p>
+        )}
       </header>
       <main className="w-full max-w-6xl flex flex-col items-center">
         <EmojiSelector
           selectedMood={selectedMood}
           onSelectMood={handleSelectMood}
+          initialIntensity={currentIntensity} // Pass initial intensity
+          // customMoods={customMoods} // Pass custom moods to selector - Task 2.3
+          // onAddCustomMood={() => setShowCustomMoodModal(true)} // Task 2.3
         />
+
+        {/* Placeholder for Custom Mood Modal - Task 2.3 */}
+        {/* {showCustomMoodModal && (
+          <div className=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">
+            <div className=\"bg-white p-6 rounded-xl shadow-2xl w-full max-w-md\">
+              <h3 className=\"text-xl font-semibold text-text-primary mb-4\">Add Custom Mood</h3>
+              <p className=\"text-text-secondary mb-4\">Define a new mood to track.</p>
+              <button onClick={() => handleAddCustomMood({emoji: '🤔', label: 'Thinking', value: 'thinking', color: '#A0AEC0'})} className=\"btn-primary w-full mb-2\">Add 'Thinking' (Example)</button>
+              <button onClick={() => setShowCustomMoodModal(false)} className=\"w-full py-2 px-4 bg-gray-200 text-text-secondary rounded-lg hover:bg-gray-300 transition-colors\">Cancel</button>
+            </div>
+          </div>
+        )} */}
 
         <div className="w-full mx-auto mt-8">
           <div className="flex flex-wrap gap-4 mb-6 justify-center">
@@ -224,10 +335,11 @@ function App() {
               onClick={() => {
                 setShowYearInPixels(false);
                 setShowMonthChart(false);
+                setShowMoodHistory(false); // Task 3.2
               }}
-              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
-                !showYearInPixels && !showMonthChart
-                  ? 'bg-primary text-white'
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${ 
+                !showYearInPixels && !showMonthChart && !showMoodHistory // Task 3.2
+                  ? 'bg-primary text-white' 
                   : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
@@ -237,10 +349,11 @@ function App() {
               onClick={() => {
                 setShowYearInPixels(true);
                 setShowMonthChart(false);
+                setShowMoodHistory(false); // Task 3.2
               }}
-              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${ 
                 showYearInPixels
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-white' 
                   : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
@@ -250,24 +363,40 @@ function App() {
               onClick={() => {
                 setShowYearInPixels(false);
                 setShowMonthChart(true);
+                setShowMoodHistory(false); // Task 3.2
               }}
-              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${ 
                 showMonthChart
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-white' 
                   : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
               Month Chart
             </button>
+            {/* Task 3.2: Button to show Mood History Feed */}
+            <button
+              onClick={() => {
+                setShowYearInPixels(false);
+                setShowMonthChart(false);
+                setShowMoodHistory(true);
+              }}
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${ 
+                showMoodHistory
+                  ? 'bg-primary text-white' 
+                  : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+              }`}
+            >
+              Mood History
+            </button>
           </div>
           {showYearInPixels ? (
-            <div className="p-6 bg-white shadow-xl rounded-xl mt-8 w-full">
+            <div className="p-6 bg-white shadow-xl rounded-2xl mt-8 w-full"> {/* Increased border-radius */}
               <div className="overflow-x-auto">
                 <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
               </div>
             </div>
           ) : showMonthChart ? (
-            <div className="p-6 bg-white shadow-xl rounded-xl mt-8 w-full">
+            <div className="p-6 bg-white shadow-xl rounded-2xl mt-8 w-full"> {/* Increased border-radius */}
               <h3 className="text-2xl font-semibold text-slate-700 mb-8 text-center">
                 {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear} Mood Chart
               </h3>
@@ -285,22 +414,24 @@ function App() {
               <div className="mt-8 flex justify-center gap-4">
                 <button
                   onClick={() => handleChangeMonth('prev')}
-                  className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-text-secondary rounded-lg transition-colors shadow-sm"
+                  className="btn-primary"
                 >
                   ← Previous Month
                 </button>
                 <button
                   onClick={() => handleChangeMonth('next')}
-                  className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-text-secondary rounded-lg transition-colors shadow-sm"
+                  className="btn-primary"
                 >
                   Next Month →
                 </button>
               </div>
             </div>
+          ) : showMoodHistory ? ( // Task 3.2: Render MoodHistoryFeed
+            <MoodHistoryFeed moodEntries={moodEntries} onEntryClick={handleHistoryEntryClick} />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full mt-8">
               <div className="lg:col-span-2 flex flex-col gap-8">
-                <div className="p-6 bg-white shadow-xl rounded-xl">
+                <div className="p-6 bg-white shadow-xl rounded-2xl"> {/* Increased border-radius */}
                   <div className="mb-6 text-center">
                     <h3 className="text-xl font-medium text-text-primary">
                       Logging mood for:{" "}
@@ -323,7 +454,7 @@ function App() {
                 </div>
               </div>
               <div className="lg:col-span-1 flex flex-col gap-8">
-                <div className="p-6 bg-white shadow-xl rounded-xl">
+                <div className="p-6 bg-white shadow-xl rounded-2xl"> {/* Increased border-radius */}
                   <JournalInput
                     key={`journal-${selectedDate}`}
                     onSaveJournal={handleSaveJournal}
@@ -331,7 +462,7 @@ function App() {
                     moodSelected={selectedMood !== null}
                   />
                 </div>
-                <div className="p-6 bg-white shadow-xl rounded-xl">
+                <div className="p-6 bg-white shadow-xl rounded-2xl"> {/* Increased border-radius */}
                   <ActivityTagSelector
                     key={`tags-${selectedDate}`}
                     availableTags={availableTags}
@@ -349,7 +480,18 @@ function App() {
       </main>
 
       <footer className="mt-auto pt-8 pb-6 text-center text-text-secondary text-sm">
-        © {new Date().getFullYear()} Emoji Mood Tracker
+        <p>© {new Date().getFullYear()} Emoji Mood Tracker. All rights reserved.</p>
+        {/* Task 5.5: Add link to mental health resource */}
+        <p className="mt-2">
+          <a 
+            href="https://www.mentalhealth.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-primary underline"
+          >
+            Need Support? Visit MentalHealth.com
+          </a>
+        </p>
       </footer>
 
       <Notification message={notification} />

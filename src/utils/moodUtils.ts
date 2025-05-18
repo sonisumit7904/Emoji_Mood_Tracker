@@ -3,31 +3,31 @@ import { MoodData, MoodType } from '../types/types';
 export const MOODS: MoodData[] = [
   {
     emoji: '😊',
-    color: '#60a5fa',
+    color: '#60A5FA', // Updated to match tailwind config
     label: 'Very Happy',
     value: 'veryhappy'
   },
   {
     emoji: '🙂',
-    color: '#34d399',
+    color: '#34D399', // Updated to match tailwind config
     label: 'Happy',
     value: 'happy'
   },
   {
     emoji: '😐',
-    color: '#facc15',
+    color: '#FACC15', // Updated to match tailwind config
     label: 'Neutral',
     value: 'neutral'
   },
   {
     emoji: '😟',
-    color: '#fb923c',
+    color: '#FB923C', // Updated to match tailwind config
     label: 'Sad',
     value: 'sad'
   },
   {
     emoji: '😭',
-    color: '#f87171',
+    color: '#F87171', // Updated to match tailwind config
     label: 'Very Sad',
     value: 'verysad'
   }

@@ -24,3 +24,21 @@
 body {
   @apply font-sans;
 }
+
+.btn-primary {
+  @apply bg-primary text-white font-semibold py-2 px-4 rounded-lg shadow-md;
+  @apply transition-all duration-300 ease-in-out;
+}
+.btn-primary:hover {
+  @apply bg-blue-700 transform scale-105;
+}
+.btn-primary:active {
+  @apply bg-blue-800 transform scale-95;
+}
+.btn-primary:disabled {
+  @apply bg-gray-400 cursor-not-allowed;
+}
+
+.input-field {
+  @apply block w-full px-4 py-3 mb-3 text-base text-text-primary placeholder-text-secondary bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm;
+}
