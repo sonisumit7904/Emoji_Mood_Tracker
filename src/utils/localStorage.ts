@@ -33,10 +33,10 @@ export const saveMoodEntry = (
   date: string, 
   mood: MoodType, 
   journal?: string,
-  tags?: string[] // Add tags parameter
+  tags?: string[] 
 ): void => {
   const entries = getMoodEntries();
-  entries[date] = { mood, journal, tags }; // Include tags
+  entries[date] = { mood, journal, tags }; 
   saveMoodEntries(entries);
 };
 
@@ -47,6 +47,7 @@ export const getMoodEntry = (date: string): { mood: MoodType; journal?: string; 
   const entries = getMoodEntries();
   return entries[date]; // This will now include tags if they exist
 }
+
 
 // Custom Tags Storage
 const CUSTOM_TAGS_KEY = 'emojiMoodTrackerCustomTags';

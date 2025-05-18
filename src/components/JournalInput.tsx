@@ -4,15 +4,15 @@ import WarningToast from './WarningToast';
 interface JournalInputProps {
   onSaveJournal: (journal: string) => void;
   initialJournal?: string;
-  moodSelected?: boolean; // Add prop to know if mood is selected
+  moodSelected?: boolean; 
 }
 
-const MAX_JOURNAL_LENGTH = 100; // Define a max length
+const MAX_JOURNAL_LENGTH = 100; 
 
 const JournalInput: React.FC<JournalInputProps> = ({ 
   onSaveJournal, 
   initialJournal = '',
-  moodSelected = false // Default to false if not provided
+  moodSelected = false 
 }) => {
   const [journal, setJournal] = useState(initialJournal);
   const [warningMessage, setWarningMessage] = useState('');
@@ -56,7 +56,7 @@ const JournalInput: React.FC<JournalInputProps> = ({
           placeholder="Few words or #tags (max 100 chars): e.g., #work, #travel, today happy - travel"
           rows={3}
           className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-none"
-          maxLength={MAX_JOURNAL_LENGTH} // Enforce max length
+          maxLength={MAX_JOURNAL_LENGTH} 
         />
         <div className="text-xs text-gray-500 mt-1 text-right">
           {charsLeft} characters remaining
@@ -69,7 +69,6 @@ const JournalInput: React.FC<JournalInputProps> = ({
         </button>
       </form>
 
-      {/* Toast notification for warnings */}
       <WarningToast 
         message={warningMessage} 
         isVisible={showWarning} 

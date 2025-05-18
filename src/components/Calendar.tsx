@@ -30,7 +30,6 @@ const Calendar: React.FC<CalendarProps> = ({
   const monthName = getMonthNames()[currentMonth];
   const dayNames = getDayNames();
   
-  // Generate calendar days
   const calendarDays = useMemo(() => {
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
@@ -141,8 +140,6 @@ const Calendar: React.FC<CalendarProps> = ({
             <CalendarDay
               key={index}
               day={day.day}
-              month={day.month}
-              year={day.year}
               dateString={dateString}
               mood={day.mood}
               hasJournal={day.hasJournal} // Pass hasJournal prop

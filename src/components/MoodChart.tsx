@@ -8,16 +8,16 @@ Chart.register(...registerables, Filler);
 
 interface MoodChartProps {
   moodEntries: MoodEntries;
-  month?: number; // 0-indexed (0 = January, 11 = December)
+  month?: number; 
   year?: number;
-  expanded?: boolean; // Add expanded prop for full-size chart in chart view
+  expanded?: boolean; 
 }
 
 const MoodChart: React.FC<MoodChartProps> = ({ 
   moodEntries, 
   month = new Date().getMonth(), 
   year = new Date().getFullYear(),
-  expanded = false // Default to false for normal size
+  expanded = false 
 }) => {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
@@ -26,24 +26,19 @@ const MoodChart: React.FC<MoodChartProps> = ({
   useEffect(() => {
     if (!chartRef.current) return;
 
-    // Get days in the month (1-31)
     const daysInMonth = getDaysInMonth(year, month);
     
-    // Generate data for each day of the month
     const labels: string[] = [];
     const dataPoints: (number | null)[] = [];
     const pointBackgroundColors: string[] = [];
     const pointRadii: number[] = [];
 
     for (let day = 1; day <= daysInMonth; day++) {
-      // Format date as YYYY-MM-DD
       const date = new Date(year, month, day);
       const dateString = formatDateToString(date);
       
-      // Just use day number (1-31) for x-axis labels
       labels.push(day.toString());
 
-      // Check if there's a mood entry for this date
       const entry = moodEntries[dateString];
       if (entry && entry.mood) {
         const score = getMoodScore(entry.mood);
@@ -131,7 +126,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
               },
               ticks: {
                 autoSkip: true,
-                maxTicksLimit: 31 // Show more day numbers on x-axis
+                maxTicksLimit: 31 
               }
             }
           },
@@ -152,7 +147,6 @@ const MoodChart: React.FC<MoodChartProps> = ({
                 },
                 title: function(tooltipItems) {
                   const dataIndex = tooltipItems[0].dataIndex;
-                  // Day is dataIndex + 1 (since we start from day 1)
                   const date = new Date(year, month, dataIndex + 1);
                   return formatDateToString(date);
                 }
@@ -163,13 +157,10 @@ const MoodChart: React.FC<MoodChartProps> = ({
       });
     }
 
-    // Create custom y-axis labels with emojis and colored circles
     if (chartContainerRef.current) {
-      // Remove any existing custom y-axis labels
       const existingLabels = chartContainerRef.current.querySelectorAll('.custom-y-axis-label');
       existingLabels.forEach(label => label.remove());
 
-      // Create new custom y-axis labels
       const yAxisLabels = [
         { value: 5, mood: 'veryhappy' },
         { value: 4, mood: 'happy' },
@@ -183,12 +174,11 @@ const MoodChart: React.FC<MoodChartProps> = ({
         if (moodData && chartInstanceRef.current) {
           const yPos = chartInstanceRef.current.scales['y'].getPixelForValue(label.value);
           
-          // Create the label element
           const labelElement = document.createElement('div');
           labelElement.className = 'custom-y-axis-label';
           labelElement.style.position = 'absolute';
           labelElement.style.left = '10px';
-          labelElement.style.top = `${yPos - 12}px`; // Center vertically
+          labelElement.style.top = `${yPos - 12}px`; 
           labelElement.style.width = '24px';
           labelElement.style.height = '24px';
           labelElement.style.borderRadius = '50%';
@@ -210,7 +200,6 @@ const MoodChart: React.FC<MoodChartProps> = ({
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
-      // Clean up custom labels
       if (chartContainerRef.current) {
         const existingLabels = chartContainerRef.current.querySelectorAll('.custom-y-axis-label');
         existingLabels.forEach(label => label.remove());
@@ -218,7 +207,6 @@ const MoodChart: React.FC<MoodChartProps> = ({
     };
   }, [moodEntries, month, year]);
 
-  // Get month name for the title
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'

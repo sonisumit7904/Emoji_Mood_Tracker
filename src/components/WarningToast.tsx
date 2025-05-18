@@ -20,7 +20,7 @@ const WarningToast: React.FC<WarningToastProps> = ({
       setAnimation('slide-in');
       const timer = setTimeout(() => {
         setAnimation('slide-out');
-        setTimeout(onClose, 300); // Wait for animation to complete before closing
+        setTimeout(onClose, 300); 
       }, autoHideDuration);
       
       return () => clearTimeout(timer);

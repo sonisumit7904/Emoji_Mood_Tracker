@@ -4,21 +4,17 @@ import { getMoodData } from '../utils/moodUtils';
 
 interface CalendarDayProps {
   day: number;
-  month: number;
-  year: number;
   dateString: string;
   mood: MoodType | null;
   isCurrentMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
   onSelect: (dateString: string) => void;
-  hasJournal?: boolean; // Add hasJournal prop
+  hasJournal?: boolean; 
 }
 
 const CalendarDay: React.FC<CalendarDayProps> = ({ 
   day, 
-  month, // Used in props but not directly in component
-  year, // Used in props but not directly in component
   dateString,
   mood, 
   isCurrentMonth, 
@@ -27,14 +23,13 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   onSelect,
   hasJournal
 }) => {
-  // Get the style based on the mood
   const getMoodStyle = () => {
     if (!mood || !isCurrentMonth) return {};
     
     const moodData = getMoodData(mood);
     return {
       backgroundColor: moodData.color,
-      color: '#1f2937', // text-gray-800
+      color: '#1f2937', 
       transform: 'scale(0.95)',
     };
   };
@@ -48,7 +43,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     ${isSelected ? 'ring-2 ring-green-500 ring-offset-1' : ''}
     ${mood && isCurrentMonth ? 'font-medium' : ''}
     ${isCurrentMonth ? 'cursor-pointer hover:bg-gray-100' : ''}
-    relative // Add relative positioning for the icon
+    relative 
   `;
 
   const handleClick = () => {

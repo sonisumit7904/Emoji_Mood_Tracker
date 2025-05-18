@@ -34,7 +34,7 @@ export const MOODS: MoodData[] = [
 ];
 
 export const getMoodData = (mood: MoodType): MoodData => {
-  return MOODS.find(m => m.value === mood) || MOODS[2]; // Default to neutral if not found
+  return MOODS.find(m => m.value === mood) || MOODS[2]; 
 };
 
 export const getMoodScore = (mood: MoodType): number => {
@@ -44,17 +44,17 @@ export const getMoodScore = (mood: MoodType): number => {
     case 'neutral': return 3;
     case 'sad': return 2;
     case 'verysad': return 1;
-    default: return 0; // Should not happen with MoodType
+    default: return 0; 
   }
 };
 
 export const getMoodDataByScore = (score: number): MoodData | undefined => {
   switch (score) {
-    case 5: return MOODS[0]; // veryhappy
-    case 4: return MOODS[1]; // happy
-    case 3: return MOODS[2]; // neutral
-    case 2: return MOODS[3]; // sad
-    case 1: return MOODS[4]; // verysad
+    case 5: return MOODS[0]; 
+    case 4: return MOODS[1]; 
+    case 3: return MOODS[2]; 
+    case 2: return MOODS[3]; 
+    case 1: return MOODS[4]; 
     default: return undefined;
   }
 };

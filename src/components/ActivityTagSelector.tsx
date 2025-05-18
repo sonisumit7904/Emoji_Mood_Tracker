@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WarningToast from './WarningToast';
 
 interface Tag {
@@ -111,7 +111,6 @@ const ActivityTagSelector: React.FC<ActivityTagSelectorProps> = ({
         </div>
       </div>
       
-      {/* Toast notification for warnings */}
       <WarningToast 
         message={warningMessage} 
         isVisible={showWarning} 

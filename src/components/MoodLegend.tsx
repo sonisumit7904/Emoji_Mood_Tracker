@@ -2,7 +2,7 @@ import React from 'react';
 import { MOODS } from '../utils/moodUtils';
 
 interface MoodLegendProps {
-  horizontal?: boolean; // Add prop to control layout direction
+  horizontal?: boolean; 
 }
 
 const MoodLegend: React.FC<MoodLegendProps> = ({ horizontal = false }) => {
@@ -16,7 +16,7 @@ const MoodLegend: React.FC<MoodLegendProps> = ({ horizontal = false }) => {
               style={{ backgroundColor: mood.color }}
             ></div>
             <span className="text-sm font-medium text-slate-700">{mood.label}</span>
-            {horizontal && <div className="mr-5"></div>} {/* Add extra spacing between items when horizontal */}
+            {horizontal && <div className="mr-5"></div>} 
           </div>
         ))}
       </div>
