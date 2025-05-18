@@ -8,7 +8,7 @@ import ActivityTagSelector from "./components/ActivityTagSelector"; // Import ne
 import MoodChart from "./components/MoodChart"; // Import the new MoodChart component
 import YearInPixels from './components/YearInPixels';
 import { MoodEntries, MoodType } from "./types/types";
-import { getTodayString } from "./utils/dateUtils";
+import { getTodayString, formatDateToString } from "./utils/dateUtils";
 import { getMoodEntries, saveMoodEntry, saveCustomTags, getCustomTags } from "./utils/localStorage";
 
 // Define a simple Tag type for this component
@@ -72,59 +72,57 @@ function App() {
   }, []);
   // Update selected mood when selected date changes
   useEffect(() => {
-    const entries = getMoodEntries();
-    setSelectedMood(entries[selectedDate]?.mood || null);
-    setCurrentJournal(entries[selectedDate]?.journal);
-    setCurrentTags(entries[selectedDate]?.tags || []); // Load tags for selected date
-  }, [selectedDate]);
+    const entry = moodEntries[selectedDate];
+    setSelectedMood(entry?.mood || null);
+    setCurrentJournal(entry?.journal || "");
+    setCurrentTags(entry?.tags || []);
+    // setNotification(''); // Clear notification when date changes
+  }, [selectedDate, moodEntries]); // Added moodEntries to dependency array
+
   // Handle mood selection
   const handleSelectMood = (mood: MoodType) => {
+    setMoodEntries(prevMoodEntries => {
+      const newMoodEntries = { ...prevMoodEntries }; // Create a new object
+      const journalToSave = newMoodEntries[selectedDate]?.journal || currentJournal || "";
+      const tagsToSave = newMoodEntries[selectedDate]?.tags || currentTags || [];
+
+      newMoodEntries[selectedDate] = {
+        mood: mood,
+        journal: journalToSave,
+        tags: tagsToSave,
+      };
+      saveMoodEntry(selectedDate, mood, journalToSave, tagsToSave); // Save to localStorage
+      return newMoodEntries; // Return the new object
+    });
+
     setSelectedMood(mood);
-    
-    // If there's an existing journal for this date and mood, pre-fill it
-    const existingEntry = getMoodEntries()[selectedDate];
-    let journalText = undefined;
-    let tagList: string[] = [];
-    
-    if (existingEntry && existingEntry.mood === mood) {
-      // If same mood is selected, keep existing journal and tags
-      journalText = existingEntry.journal;
-      tagList = existingEntry.tags || [];
-      setCurrentJournal(journalText);
-      setCurrentTags(tagList);
-    } else {
-      // If mood changes or no existing journal, clear it
-      setCurrentJournal(undefined);
-      setCurrentTags([]);
-    }
-    
-    // Save mood immediately (with any existing journal and tags or empty ones)
-    saveMoodEntry(selectedDate, mood, journalText, tagList);
-    setMoodEntries(prev => ({
-      ...prev,
-      [selectedDate]: { 
-        mood: mood, 
-        journal: journalText,
-        tags: tagList
-      }
-    }));
-    
-    // Show notification
-    setNotification(`Mood saved for ${selectedDate === todayString ? "today" : selectedDate}!`);
+    setNotification(
+      `Mood saved for ${selectedDate === todayString ? "today" : selectedDate}!`
+    );
   };
+
   // Handle saving journal entry
   const handleSaveJournal = (journal: string) => {
+    setCurrentJournal(journal);
     if (selectedMood) {
-      saveMoodEntry(selectedDate, selectedMood, journal, currentTags); // Pass tags to saveMoodEntry
-      setMoodEntries((prev) => ({
-        ...prev,
-        [selectedDate]: { mood: selectedMood, journal, tags: currentTags }, // Save tags in state
-      }));
+      setMoodEntries(prevMoodEntries => {
+        const newMoodEntries = { ...prevMoodEntries }; // Create a new object
+        newMoodEntries[selectedDate] = {
+          ...(newMoodEntries[selectedDate] || {}),
+          mood: selectedMood, // Ensure mood is present
+          journal: journal,
+          tags: newMoodEntries[selectedDate]?.tags || currentTags || [], // Preserve existing tags
+        };
+        saveMoodEntry(selectedDate, selectedMood, journal, newMoodEntries[selectedDate]?.tags || currentTags || []);
+        return newMoodEntries; // Return the new object
+      });
       setNotification(
-        `Journal saved for ${
-          selectedDate === todayString ? "today" : selectedDate
+        `Journal saved for ${selectedDate === todayString ? "today" : selectedDate
         }!`
       );
+    } else {
+      // If no mood is selected, just update the currentJournal state
+      // The journal will be saved when a mood is eventually selected.
     }
   };
 
@@ -152,21 +150,22 @@ function App() {
     }
   };  const handleTagSelectionChange = (newSelectedTags: string[]) => {
     setCurrentTags(newSelectedTags);
-    
-    // Save immediately if a mood is already selected
     if (selectedMood) {
-      saveMoodEntry(selectedDate, selectedMood, currentJournal, newSelectedTags);
-      setMoodEntries(prev => ({
-        ...prev,
-        [selectedDate]: { 
-          mood: selectedMood, 
-          journal: currentJournal,
-          tags: newSelectedTags
-        }
-      }));
-      
-      // Optional: Show a notification
-      setNotification(`Tags updated for ${selectedDate === todayString ? "today" : selectedDate}`);
+      setMoodEntries(prevMoodEntries => {
+        const newMoodEntries = { ...prevMoodEntries }; // Create a new object
+        newMoodEntries[selectedDate] = {
+          ...(newMoodEntries[selectedDate] || {}),
+          mood: selectedMood, // Ensure mood is present
+          journal: newMoodEntries[selectedDate]?.journal || currentJournal || "", // Preserve existing journal
+          tags: newSelectedTags,
+        };
+        saveMoodEntry(selectedDate, selectedMood, newMoodEntries[selectedDate]?.journal || currentJournal || "", newSelectedTags);
+        return newMoodEntries; // Return the new object
+      });
+      setNotification(
+        `Tags updated for ${selectedDate === todayString ? "today" : selectedDate
+        }`
+      );
     }
   };
 
@@ -191,31 +190,26 @@ function App() {
     const newTagId = tagName.toLowerCase().replace(/\s+/g, "-");
     if (!availableTags.find((tag) => tag.id === newTagId)) {
       const newTag: Tag = { id: newTagId, name: tagName, isCustom: true };
-      
-      // Update state with new tag
-      const updatedTags = [...availableTags, newTag];
-      setAvailableTags(updatedTags);
-      
-      // Auto-select new custom tag and save immediately
-      const updatedTags2 = [...currentTags, newTagId];
-      setCurrentTags(updatedTags2);
-      
-      // Save immediately if a mood is selected
+      const updatedAvailableTags = [...availableTags, newTag];
+      setAvailableTags(updatedAvailableTags);
+
+      const newSelectedTags = [...currentTags, newTagId];
+      setCurrentTags(newSelectedTags);
+
       if (selectedMood) {
-        saveMoodEntry(selectedDate, selectedMood, currentJournal, updatedTags2);
-        setMoodEntries(prev => ({
-          ...prev,
-          [selectedDate]: { 
-            mood: selectedMood, 
-            journal: currentJournal,
-            tags: updatedTags2
-          }
-        }));
+        setMoodEntries(prevMoodEntries => {
+          const newMoodEntries = { ...prevMoodEntries }; // Create a new object
+          newMoodEntries[selectedDate] = {
+            ...(newMoodEntries[selectedDate] || {}),
+            mood: selectedMood, // Ensure mood is present
+            journal: newMoodEntries[selectedDate]?.journal || currentJournal || "", // Preserve existing journal
+            tags: newSelectedTags,
+          };
+          saveMoodEntry(selectedDate, selectedMood, newMoodEntries[selectedDate]?.journal || currentJournal || "", newSelectedTags);
+          return newMoodEntries; // Return the new object
+        });
       }
-      
-      // Save custom tags to localStorage for persistence
-      // Filter out default tags to avoid duplication
-      const customTags = updatedTags.filter(
+      const customTags = updatedAvailableTags.filter(
         tag => !DEFAULT_TAGS.some(defaultTag => defaultTag.id === tag.id)
       );
       saveCustomTags(customTags);
@@ -223,12 +217,18 @@ function App() {
   };
 
   const handleDayClickFromYearView = (dateString: string) => {
-    const date = new Date(dateString);
-    setSelectedDate(date);
-    setCurrentMonth(date.getMonth());
-    setCurrentYear(date.getFullYear());
-    setShowYearInPixels(false); // Optionally hide year view and show calendar view
-    // Or scroll to the calendar view if both are visible
+    const dateObject = new Date(dateString); // dateString is "YYYY-MM-DD"
+    // Ensure correct parsing, especially if timezone issues arise with new Date(string)
+    // For "YYYY-MM-DD", it's generally safer to parse manually or use a library,
+    // but new Date() often works for this specific format.
+    // If issues persist, consider:
+    // const [year, month, day] = dateString.split('-').map(Number);
+    // const dateObject = new Date(year, month - 1, day);
+
+    setSelectedDate(formatDateToString(dateObject)); // Convert Date object back to "YYYY-MM-DD" string
+    setCurrentMonth(dateObject.getMonth());
+    setCurrentYear(dateObject.getFullYear());
+    setShowYearInPixels(false); // Switch back to calendar view
   };
 
   return (
@@ -255,8 +255,11 @@ function App() {
           </button>
 
           {showYearInPixels ? (
-            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full overflow-x-auto">
-              <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
+            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full">
+              {/* Removed MoodLegend from here */}
+              <div className="overflow-x-auto"> {/* YearInPixels container */}
+                <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-6">
@@ -301,9 +304,8 @@ function App() {
                     onChangeMonth={handleChangeMonth}
                     onDateSelect={handleDateSelect}
                     selectedDate={selectedDate}
-                  />
-                  <div className="mt-6">
-                    <MoodLegend />
+                  />                  <div className="mt-6">
+                    <MoodLegend horizontal={true} />
                   </div>
                 </div>
                 <div className="p-6 bg-white shadow-lg rounded-lg">
