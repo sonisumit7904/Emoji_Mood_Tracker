@@ -20,3 +20,7 @@
 .animate-slide-out {
   animation: slideOut 0.3s ease-in forwards;
 }
+
+body {
+  @apply font-sans;
+}

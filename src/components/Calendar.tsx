@@ -110,7 +110,7 @@ const Calendar: React.FC<CalendarProps> = ({
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2 className="text-xl font-semibold text-text-primary">
           {monthName} {currentYear}
         </h2>
         <button 
@@ -124,7 +124,7 @@ const Calendar: React.FC<CalendarProps> = ({
       
       <div className="grid grid-cols-7 gap-1 mb-2">
         {dayNames.map(day => (
-          <div key={day} className="text-center text-sm font-medium text-gray-500">
+          <div key={day} className="text-center text-sm font-medium text-text-secondary">
             {day}
           </div>
         ))}

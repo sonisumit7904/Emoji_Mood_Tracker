@@ -205,70 +205,70 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 p-4 flex flex-col items-center font-sans">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">
+    <div className="min-h-screen bg-background text-text-primary p-6 md:p-8 flex flex-col items-center">
+      <header className="mb-10 text-center">
+        <h1 className="text-4xl font-bold text-text-primary mb-3">
           Emoji Mood Tracker
         </h1>
-        <p className="text-slate-600">Track your daily mood with emojis</p>
+        <p className="text-text-secondary">Track your daily mood with emojis</p>
       </header>
-      <main className="w-full max-w-5xl flex flex-col items-center">
+      <main className="w-full max-w-6xl flex flex-col items-center">
         <EmojiSelector
           selectedMood={selectedMood}
           onSelectMood={handleSelectMood}
         />
 
-        <div className="w-full max-w-5xl mx-auto mt-6">
-          <div className="flex flex-wrap gap-3 mb-4">
-            <button 
+        <div className="w-full mx-auto mt-8">
+          <div className="flex flex-wrap gap-4 mb-6 justify-center">
+            <button
               onClick={() => {
                 setShowYearInPixels(false);
                 setShowMonthChart(false);
               }}
-              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
-                !showYearInPixels && !showMonthChart 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                !showYearInPixels && !showMonthChart
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
               Calendar View
             </button>
-            <button 
+            <button
               onClick={() => {
                 setShowYearInPixels(true);
                 setShowMonthChart(false);
               }}
-              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
-                showYearInPixels 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                showYearInPixels
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
               Year in Pixels
             </button>
-            <button 
+            <button
               onClick={() => {
                 setShowYearInPixels(false);
                 setShowMonthChart(true);
               }}
-              className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors ${
-                showMonthChart 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className={`px-5 py-2.5 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                showMonthChart
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
               }`}
             >
               Month Chart
             </button>
           </div>
           {showYearInPixels ? (
-            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full">
+            <div className="p-6 bg-white shadow-xl rounded-xl mt-8 w-full">
               <div className="overflow-x-auto">
                 <YearInPixels year={currentYear} moodEntries={moodEntries} onDayClick={handleDayClickFromYearView} />
               </div>
             </div>
           ) : showMonthChart ? (
-            <div className="p-6 bg-white shadow-lg rounded-lg mt-6 w-full">
-              <h3 className="text-2xl font-semibold text-slate-700 mb-6 text-center">
+            <div className="p-6 bg-white shadow-xl rounded-xl mt-8 w-full">
+              <h3 className="text-2xl font-semibold text-slate-700 mb-8 text-center">
                 {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear} Mood Chart
               </h3>
               <div className="h-[500px]">
@@ -279,54 +279,32 @@ function App() {
                   year={currentYear} 
                 />
               </div>
-              <div className="mt-6 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <MoodLegend horizontal={true} />
               </div>
-              <div className="mt-6 flex justify-center gap-4">
+              <div className="mt-8 flex justify-center gap-4">
                 <button
                   onClick={() => handleChangeMonth('prev')}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                  className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-text-secondary rounded-lg transition-colors shadow-sm"
                 >
                   ← Previous Month
                 </button>
                 <button
                   onClick={() => handleChangeMonth('next')}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                  className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-text-secondary rounded-lg transition-colors shadow-sm"
                 >
                   Next Month →
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-6">
-              <div className="md:col-span-1 flex flex-col gap-6">
-                <div className="p-6 bg-white shadow-lg rounded-lg">
-                  <JournalInput
-                    key={`journal-${selectedDate}`}
-                    onSaveJournal={handleSaveJournal}
-                    initialJournal={currentJournal}
-                    moodSelected={selectedMood !== null}
-                  />
-                </div>
-                <div className="p-6 bg-white shadow-lg rounded-lg">
-                  <ActivityTagSelector
-                    key={`tags-${selectedDate}`}
-                    availableTags={availableTags}
-                    selectedTags={currentTags}
-                    onTagSelectionChange={handleTagSelectionChange}
-                    onAddCustomTag={handleAddCustomTag}
-                    onRemoveTag={handleRemoveTag}
-                    moodSelected={selectedMood !== null}
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex flex-col gap-6">
-                <div className="p-6 bg-white shadow-lg rounded-lg">
-                  <div className="mb-4 text-center">
-                    <h3 className="text-lg font-medium text-slate-700">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full mt-8">
+              <div className="lg:col-span-2 flex flex-col gap-8">
+                <div className="p-6 bg-white shadow-xl rounded-xl">
+                  <div className="mb-6 text-center">
+                    <h3 className="text-xl font-medium text-text-primary">
                       Logging mood for:{" "}
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-text-primary">
                         {selectedDate === todayString ? "Today" : selectedDate}
                       </span>
                     </h3>
@@ -339,9 +317,30 @@ function App() {
                     onDateSelect={handleDateSelect}
                     selectedDate={selectedDate}
                   />
-                  <div className="mt-6">
+                  <div className="mt-8 flex justify-center">
                     <MoodLegend horizontal={true} />
                   </div>
+                </div>
+              </div>
+              <div className="lg:col-span-1 flex flex-col gap-8">
+                <div className="p-6 bg-white shadow-xl rounded-xl">
+                  <JournalInput
+                    key={`journal-${selectedDate}`}
+                    onSaveJournal={handleSaveJournal}
+                    initialJournal={currentJournal}
+                    moodSelected={selectedMood !== null}
+                  />
+                </div>
+                <div className="p-6 bg-white shadow-xl rounded-xl">
+                  <ActivityTagSelector
+                    key={`tags-${selectedDate}`}
+                    availableTags={availableTags}
+                    selectedTags={currentTags}
+                    onTagSelectionChange={handleTagSelectionChange}
+                    onAddCustomTag={handleAddCustomTag}
+                    onRemoveTag={handleRemoveTag}
+                    moodSelected={selectedMood !== null}
+                  />
                 </div>
               </div>
             </div>
@@ -349,8 +348,8 @@ function App() {
         </div>
       </main>
 
-      <footer className="mt-auto py-6 text-center text-slate-500 text-sm">
-        {new Date().getFullYear()} Emoji Mood Tracker
+      <footer className="mt-auto pt-8 pb-6 text-center text-text-secondary text-sm">
+        © {new Date().getFullYear()} Emoji Mood Tracker
       </footer>
 
       <Notification message={notification} />

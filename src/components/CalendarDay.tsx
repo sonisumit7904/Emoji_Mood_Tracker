@@ -29,7 +29,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     const moodData = getMoodData(mood);
     return {
       backgroundColor: moodData.color,
-      color: '#1f2937', 
+      color: '#ffffff', // Changed to white for better contrast on colored backgrounds
       transform: 'scale(0.95)',
     };
   };
@@ -38,9 +38,9 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     flex items-center justify-center
     w-10 h-10 rounded-full
     transition-all duration-300
-    ${isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}
-    ${isToday ? 'ring-2 ring-blue-500 font-bold' : ''}
-    ${isSelected ? 'ring-2 ring-green-500 ring-offset-1' : ''}
+    ${isCurrentMonth ? 'text-text-primary' : 'text-gray-400'}
+    ${isToday ? 'ring-2 ring-primary font-bold' : ''} // Use primary color for today's ring
+    ${isSelected ? 'ring-2 ring-accent ring-offset-1' : ''} // Use accent color for selected day ring
     ${mood && isCurrentMonth ? 'font-medium' : ''}
     ${isCurrentMonth ? 'cursor-pointer hover:bg-gray-100' : ''}
     relative 
@@ -63,7 +63,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
         {day}
         {hasJournal && isCurrentMonth && (
           <span 
-            className="absolute top-1 right-1 w-2 h-2 bg-sky-500 rounded-full"
+            className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" // Use accent color for journal indicator
             title="Has journal entry"
           ></span>
         )}

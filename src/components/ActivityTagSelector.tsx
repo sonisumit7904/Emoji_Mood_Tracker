@@ -61,7 +61,7 @@ const ActivityTagSelector: React.FC<ActivityTagSelectorProps> = ({
   return (
     <>
       <div className="my-4 p-4 bg-white shadow-md rounded-lg">
-        <h3 className="text-md font-semibold text-gray-700 mb-2">Add Activities/Tags:</h3>      
+        <h3 className="text-md font-semibold text-text-secondary mb-2">Add Activities/Tags:</h3>      
         <div className="flex flex-wrap gap-2 mb-3">
           {availableTags.map(tag => (
             <div key={tag.id} className="relative">
@@ -70,8 +70,8 @@ const ActivityTagSelector: React.FC<ActivityTagSelectorProps> = ({
                 onClick={() => handleTagClick(tag.id)}
                 className={`${tag.isCustom ? 'pl-3 pr-5' : 'px-3'} py-1 text-sm rounded-full border transition-colors
                   ${selectedTags.includes(tag.id) 
-                    ? 'bg-blue-500 text-white border-blue-500' 
-                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}
+                    ? 'bg-primary text-white border-primary' 
+                    : 'bg-gray-100 text-text-secondary border-gray-300 hover:bg-gray-200'}
                 `}
               >
                 {tag.name}
